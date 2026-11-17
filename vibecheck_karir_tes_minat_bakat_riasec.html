@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeCheck Karir — Tes Minat Bakat & Karir RIASEC</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Space Grotesk -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#09090B',
+                            card: '#121216',
+                            border: '#27272A',
+                            purple: '#8B5CF6',
+                            cyan: '#06B6D4',
+                            pink: '#EC4899',
+                            lime: '#84CC16',
+                            amber: '#F59E0B',
+                            blue: '#3B82F6'
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -40px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(16px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Chart.js untuk Grafik Radar RIASEC -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- html2canvas & jsPDF untuk Export PNG dan PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Custom Scrollbar & Utilitas Glassmorphism */
+        body {
+            background-color: #09090B;
+            color: #F4F4F5;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card-hover {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-hover:hover {
+            transform: translateY(-3px);
+            border-color: rgba(139, 92, 246, 0.45);
+            box-shadow: 0 12px 30px -10px rgba(139, 92, 246, 0.25);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #A855F7 0%, #EC4899 50%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .likert-btn {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .likert-btn:active {
+            transform: scale(0.95);
+        }
+        .likert-btn.selected {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(236, 72, 153, 0.25));
+            border-color: #A855F7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Styling khusus area export kartu agar tajam saat di-render html2canvas */
+        #share-card-capture {
+            background: linear-gradient(145deg, #13111C 0%, #0D131F 50%, #19101E 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-purple-500 selection:text-white">
+
+    <!-- Ambient Animated Background Blobs -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600/20 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
+        <div class="absolute top-[20%] right-[-5%] w-96 h-96 bg-cyan-500/15 rounded-full mix-blend-screen filter blur-3xl animate-blob" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-[-10%] left-[25%] w-96 h-96 bg-pink-600/15 rounded-full mix-blend-screen filter blur-3xl animate-blob" style="animation-delay: 4s;"></div>
+        <!-- Subtle Grid Overlay -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:36px_36px]"></div>
+    </div>
+
+    <!-- Custom Toast / Notification Banner (Pengganti alert) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full border-b border-white/10 bg-zinc-950/60 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 cursor-pointer" onclick="resetToLanding()">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                    <i data-lucide="compass" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <span class="font-display font-bold text-lg tracking-tight text-white">VibeCheck<span class="text-purple-400">.Karir</span></span>
+                    <span class="hidden sm:inline-block ml-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/10">Holland RIASEC Engine</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="openInfoModal()" class="text-xs sm:text-sm font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition flex items-center gap-1.5">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                    <span>Tentang Tes</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+        <!-- =========================================================
+             SECTION 1: LANDING SCREEN (HALAMAN PEMBUKA)
+        ========================================================== -->
+        <section id="landing-section" class="animate-fade-in">
+            <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                
+                <!-- Kolom Kiri: Hero & Form Identitas -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-semibold">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                        </span>
+                        <span>Psikometri Karir Generasi Masa Depan • 24 Butir Terkalibrasi</span>
+                    </div>
+
+                    <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.12] text-white">
+                        VibeCheck Karir: <br/>
+                        <span class="gradient-text">Temukan DNA Potensi</span> & Masa Depanmu
+                    </h1>
+
+                    <p class="text-zinc-400 text-base sm:text-lg leading-relaxed max-w-2xl">
+                        Bingung pilih jurusan kuliah atau karir di era AI & ekonomi kreatif? Kenali pola minat aslimu lewat asesmen berbasis teori psikologi <strong class="text-zinc-200">John Holland (RIASEC)</strong> yang dirancang khusus untuk pelajar SMA/MA.
+                    </p>
+
+                    <!-- Form Input Identitas untuk Sertifikat & Laporan BK -->
+                    <div class="glass-panel p-5 sm:p-6 rounded-2xl space-y-4 shadow-2xl">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-sm font-semibold text-zinc-200 flex items-center gap-2">
+                                <i data-lucide="id-card" class="w-4 h-4 text-cyan-400"></i>
+                                Data Diri untuk Kartu Persona & Laporan BK
+                            </h2>
+                            <span class="text-[11px] text-zinc-400 bg-white/5 px-2 py-0.5 rounded-md">Opsional</span>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="input-name" class="block text-xs font-medium text-zinc-400 mb-1.5">Nama Lengkap</label>
+                                <input type="text" id="input-name" placeholder="Contoh: Raka Pratama" 
+                                    class="w-full px-4 py-2.5 rounded-xl bg-zinc-900/90 border border-zinc-700/80 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                            </div>
+                            <div>
+                                <label for="input-school" class="block text-xs font-medium text-zinc-400 mb-1.5">Kelas / Asal Sekolah</label>
+                                <input type="text" id="input-school" placeholder="Contoh: XII IPA 2 - SMAN 1 Nusantara" 
+                                    class="w-full px-4 py-2.5 rounded-xl bg-zinc-900/90 border border-zinc-700/80 text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition">
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <button onclick="startQuiz()" class="flex-1 py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-500 hover:via-pink-500 hover:to-cyan-500 shadow-lg shadow-purple-600/25 hover:shadow-purple-600/40 transition-all flex items-center justify-center gap-2.5 text-base group cursor-pointer">
+                                <span>Mulai Tes Sekarang</span>
+                                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                            </button>
+                            <div class="flex items-center justify-center gap-2 text-xs text-zinc-400 px-3 py-2">
+                                <i data-lucide="clock" class="w-4 h-4 text-zinc-500"></i>
+                                <span>± 3 Menit • Gratis</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: 6 Tipe Kepribadian Holland Badges -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="flex items-center justify-between px-1">
+                        <span class="text-xs font-bold uppercase tracking-wider text-zinc-400">6 Dimensi Kepribadian Holland</span>
+                        <span class="text-xs text-purple-400 font-medium">Hexagon Model</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                        <!-- R -->
+                        <div class="glass-panel glass-card-hover p-3.5 rounded-2xl flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-display font-bold text-lg shrink-0">R</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-white">Realistic <span class="text-emerald-400 text-xs font-normal">(The Doers)</span></h3>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Praktis, suka alat, mesin, teknologi fisik, robotika, dan aktivitas lapangan.</p>
+                            </div>
+                        </div>
+
+                        <!-- I -->
+                        <div class="glass-panel glass-card-hover p-3.5 rounded-2xl flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-display font-bold text-lg shrink-0">I</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-white">Investigative <span class="text-cyan-400 text-xs font-normal">(The Thinkers)</span></h3>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Analitis, kritis, suka riset sains, data, AI, eksperimen, dan memecahkan misteri.</p>
+                            </div>
+                        </div>
+
+                        <!-- A -->
+                        <div class="glass-panel glass-card-hover p-3.5 rounded-2xl flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-pink-500/15 border border-pink-500/30 flex items-center justify-center text-pink-400 font-display font-bold text-lg shrink-0">A</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-white">Artistic <span class="text-pink-400 text-xs font-normal">(The Creators)</span></h3>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Imajinatif, ekspresif, suka desain visual, musik, konten digital, dan inovasi bebas.</p>
+                            </div>
+                        </div>
+
+                        <!-- S -->
+                        <div class="glass-panel glass-card-hover p-3.5 rounded-2xl flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-display font-bold text-lg shrink-0">S</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-white">Social <span class="text-amber-400 text-xs font-normal">(The Helpers)</span></h3>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Empatik, komunikatif, suka mengajar, konseling, kolaborasi, dan pemberdayaan.</p>
+                            </div>
+                        </div>
+
+                        <!-- E -->
+                        <div class="glass-panel glass-card-hover p-3.5 rounded-2xl flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 font-display font-bold text-lg shrink-0">E</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-white">Enterprising <span class="text-purple-400 text-xs font-normal">(The Persuaders)</span></h3>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Visioner, percaya diri, suka memimpin proyek, bisnis digital, startup, dan negosiasi.</p>
+                            </div>
+                        </div>
+
+                        <!-- C -->
+                        <div class="glass-panel glass-card-hover p-3.5 rounded-2xl flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 font-display font-bold text-lg shrink-0">C</div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-bold text-sm text-white">Conventional <span class="text-blue-400 text-xs font-normal">(The Organizers)</span></h3>
+                                </div>
+                                <p class="text-xs text-zinc-400 mt-0.5">Terstruktur, teliti, suka sistem teratur, manajemen data, finansial, dan efisiensi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- =========================================================
+             SECTION 2: INTERACTIVE QUIZ SCREEN (24 SOAL RIASEC)
+        ========================================================== -->
+        <section id="quiz-section" class="hidden max-w-3xl mx-auto animate-fade-in">
+            <!-- Top Progress Header -->
+            <div class="glass-panel p-4 sm:p-5 rounded-2xl mb-6">
+                <div class="flex items-center justify-between text-xs sm:text-sm font-medium mb-2.5">
+                    <span class="text-zinc-300 flex items-center gap-2">
+                        <span id="question-badge" class="px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">Soal 1 / 24</span>
+                        <span id="question-category-hint" class="text-zinc-500 hidden sm:inline">Asesmen Minat Aktivitas</span>
+                    </span>
+                    <span id="progress-percentage" class="font-display font-bold text-cyan-400">4%</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 rounded-full transition-all duration-300 ease-out" style="width: 4.16%;"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div id="question-card-container" class="glass-panel p-6 sm:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+                <div class="space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-400">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-pink-400"></i>
+                        <span>Seberapa tertarik kamu melakukan aktivitas ini?</span>
+                    </div>
+
+                    <h2 id="question-text" class="font-display text-xl sm:text-2xl md:text-3xl font-bold text-white leading-snug min-h-[4.5rem] flex items-center">
+                        Memuat pernyataan...
+                    </h2>
+
+                    <!-- 5-Point Likert Scale Options -->
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 sm:gap-3 pt-2" id="likert-options-grid">
+                        <!-- Diisi secara dinamis oleh JS -->
+                    </div>
+                </div>
+
+                <!-- Navigation Footer -->
+                <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+                    <button id="btn-prev" onclick="prevQuestion()" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-2 cursor-pointer">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Sebelumnya</span>
+                    </button>
+
+                    <div class="text-xs text-zinc-500 hidden sm:block">
+                        Pilih salah satu respons untuk lanjut otomatis
+                    </div>
+
+                    <button id="btn-next" onclick="nextQuestion()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-purple-600 hover:bg-purple-500 disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-2 cursor-pointer">
+                        <span id="btn-next-label">Selanjutnya</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================================================
+             SECTION 3: RESULTS DASHBOARD & DEEP CAREER ANALYSIS
+        ========================================================== -->
+        <section id="result-section" class="hidden space-y-8 animate-slide-up">
+            
+            <!-- Action Bar Top: Download PNG, Download PDF, Ulangi Tes -->
+            <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-purple-500/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-white text-sm sm:text-base">Analisis Psikometri Selesai!</h2>
+                        <p class="text-xs text-zinc-400">Simpan hasilmu untuk portofolio atau diskusi dengan Guru BK.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button id="btn-download-png" onclick="downloadPersonaCardPNG()" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 shadow-lg shadow-purple-600/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i data-lucide="image" class="w-4 h-4"></i>
+                        <span>Download Kartu (PNG)</span>
+                    </button>
+
+                    <button id="btn-download-pdf" onclick="downloadFullReportPDF()" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-zinc-950 bg-cyan-400 hover:bg-cyan-300 shadow-lg shadow-cyan-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i data-lucide="file-down" class="w-4 h-4"></i>
+                        <span>Laporan Lengkap (PDF)</span>
+                    </button>
+
+                    <button onclick="restartQuiz()" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition flex items-center justify-center gap-1.5 cursor-pointer" title="Ulangi Tes">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Ulangi</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- GRID UTAMA DASHBOARD: KARTU PERSONA (CAPTURED FOR PNG) + GRAFIK RADAR -->
+            <div class="grid lg:grid-cols-12 gap-6 items-stretch">
+                
+                <!-- Kiri (7 Kolom): Kartu Persona Utama (Target html2canvas PNG) -->
+                <div id="share-card-capture" class="lg:col-span-7 rounded-3xl p-6 sm:p-8 border border-white/15 shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                    <!-- Decorative Glow inside Card -->
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-purple-600/25 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="relative z-10 space-y-5">
+                        <!-- Header Kartu -->
+                        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                            <div>
+                                <span class="text-[11px] font-bold uppercase tracking-widest text-purple-400">VIBECHECK KARIR • HOLLAND CODE</span>
+                                <h3 id="res-user-name" class="text-lg sm:text-xl font-bold text-white mt-0.5">Siswa Eksplorer</h3>
+                                <p id="res-user-school" class="text-xs text-zinc-400">Pelajar SMA/MA</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] uppercase tracking-wider text-zinc-400 block mb-1">Kode 3-Huruf</span>
+                                <div id="res-holland-code" class="font-display text-2xl sm:text-3xl font-extrabold px-3.5 py-1 rounded-xl bg-white/10 border border-white/20 text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-purple-300 to-pink-300 tracking-wider">
+                                    I-A-S
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Julukan Persona -->
+                        <div class="space-y-2">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+                                <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                                <span>PERSONA KARIR UTAMA</span>
+                            </div>
+                            <h1 id="res-persona-title" class="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                                The Creative Visionary
+                            </h1>
+                            <p id="res-persona-tagline" class="text-sm sm:text-base text-zinc-300 leading-relaxed">
+                                Memadukan rasa ingin tahu intelektual dengan imajinasi estetika dan kepekaan sosial untuk menciptakan solusi berdampak.
+                            </p>
+                        </div>
+
+                        <!-- Top 3 Dimensions Breakdown Pills -->
+                        <div id="res-top3-pills" class="grid grid-cols-3 gap-2.5 sm:gap-3 pt-2">
+                            <!-- Diisi dinamis oleh JS -->
+                        </div>
+                    </div>
+
+                    <!-- Footer Kartu -->
+                    <div class="relative z-10 mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-zinc-400">
+                        <span>Teori Psikologi Karir John L. Holland</span>
+                        <span id="res-date-stamp" class="font-mono text-zinc-300">2026</span>
+                    </div>
+                </div>
+
+                <!-- Kanan (5 Kolom): Grafik Radar Hexagon RIASEC -->
+                <div class="lg:col-span-5 glass-panel rounded-3xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-display font-bold text-lg text-white">Peta Hexagon RIASEC</h3>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Skor 0–100%</span>
+                        </div>
+                        <p class="text-xs text-zinc-400 mb-4">Visualisasi keseimbangan minatmu di ke-6 dimensi karir.</p>
+                    </div>
+
+                    <div class="relative w-full aspect-square max-h-[290px] mx-auto flex items-center justify-center">
+                        <canvas id="riasecRadarChart"></canvas>
+                    </div>
+
+                    <!-- Mini Score List -->
+                    <div id="res-all-scores-grid" class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-white/10 text-xs">
+                        <!-- Diisi dinamis oleh JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALISIS PSIKOLOGIS & LINGKUNGAN KERJA -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass-panel rounded-3xl p-6 sm:p-7 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                            <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-display font-bold text-lg text-white">Kekuatan & Gaya Kerja</h3>
+                            <p class="text-xs text-zinc-400">Karakteristik psikologis dominanmu</p>
+                        </div>
+                    </div>
+                    <p id="res-strength-desc" class="text-sm text-zinc-300 leading-relaxed"></p>
+                    <div id="res-strength-tags" class="flex flex-wrap gap-2 pt-1"></div>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-6 sm:p-7 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                            <i data-lucide="building-2" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-display font-bold text-lg text-white">Lingkungan Belajar & Kerja Ideal</h3>
+                            <p class="text-xs text-zinc-400">Ekosistem di mana potensimu mekar maksimal</p>
+                        </div>
+                    </div>
+                    <p id="res-environment-desc" class="text-sm text-zinc-300 leading-relaxed"></p>
+                    <div id="res-environment-tips" class="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-xs text-zinc-300 flex items-start gap-2.5">
+                        <i data-lucide="lightbulb" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                        <span id="res-environment-highlight"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REKOMENDASI PROFESI MASA DEPAN & JURUSAN KULIAH -->
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+                    <div>
+                        <h3 class="font-display font-bold text-xl sm:text-2xl text-white flex items-center gap-2.5">
+                            <i data-lucide="rocket" class="w-6 h-6 text-pink-500"></i>
+                            <span>Rekomendasi Karir Masa Depan & Jurusan Kuliah</span>
+                        </h3>
+                        <p class="text-xs sm:text-sm text-zinc-400 mt-1">Dikurasi berdasarkan kombinasi kode Holland <span id="res-code-inline" class="text-purple-400 font-bold"></span> dan tren industri masa depan.</p>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-6">
+                    <!-- Profesi Era Digital & Konvensional (7 Kolom) -->
+                    <div class="lg:col-span-7 space-y-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                            <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                            Ragam Profesi Relevan (Digital, AI & Konvensional)
+                        </h4>
+                        <div id="res-careers-grid" class="grid sm:grid-cols-2 gap-3">
+                            <!-- Diisi dinamis oleh JS -->
+                        </div>
+                    </div>
+
+                    <!-- Jurusan Kuliah & Studi Lanjut (5 Kolom) -->
+                    <div class="lg:col-span-5 space-y-3">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                            <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                            Rekomendasi Jurusan Kuliah / Studi Lanjut
+                        </h4>
+                        <div id="res-majors-list" class="space-y-2.5">
+                            <!-- Diisi dinamis oleh JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTION PLAN PENGEMBANGAN DIRI PELAJAR SMA/MA -->
+            <div class="glass-panel rounded-3xl p-6 sm:p-8 space-y-6 border-emerald-500/20">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">ROADMAP AKSI PELAJAR SMA/MA</span>
+                    <h3 class="font-display font-bold text-xl sm:text-2xl text-white mt-1">Action Plan Pengembangan Diri Sekarang</h3>
+                    <p class="text-xs sm:text-sm text-zinc-400 mt-1">Langkah konkret yang bisa langsung kamu mulai di sekolah untuk membangun portofolio lebih awal.</p>
+                </div>
+
+                <div id="res-action-plan-grid" class="grid md:grid-cols-3 gap-4">
+                    <!-- Diisi dinamis oleh JS (Ekskul, Skill Digital/Hard Skill, Portofolio Awal) -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-6 mt-12 text-center text-xs text-zinc-500">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>© 2026 <strong class="text-zinc-300">VibeCheck.Karir</strong> — Asesmen Psikometri Minat & Bakat Siswa SMA/MA.</p>
+            <p>Adaptasi Teori Pilihan Karir John L. Holland (RIASEC).</p>
+        </div>
+    </footer>
+
+    <!-- Modal Tentang Teori RIASEC -->
+    <div id="info-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+        <div class="glass-panel max-w-lg w-full rounded-3xl p-6 sm:p-7 space-y-4 border-white/15 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                    <i data-lucide="compass" class="w-5 h-5 text-purple-400"></i>
+                    Apa itu Teori RIASEC?
+                </h3>
+                <button onclick="closeInfoModal()" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-sm text-zinc-300 leading-relaxed">
+                Dikembangkan oleh psikolog karir <strong>Dr. John L. Holland</strong>, teori RIASEC memetakan kepribadian dan lingkungan kerja manusia ke dalam 6 tipe utama: <em>Realistic, Investigative, Artistic, Social, Enterprising,</em> dan <em>Conventional</em>.
+            </p>
+            <div class="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-zinc-300 space-y-1.5">
+                <p class="font-bold text-purple-300">Tips Mengisi Kuis Agar Akurat:</p>
+                <ul class="list-disc list-inside space-y-1 text-zinc-300">
+                    <li>Jawab berdasarkan <strong>ketertarikan aslimu</strong>, bukan karena ikut-ikutan teman atau gengsi.</li>
+                    <li>Jangan terlalu memikirkan apakah kamu sudah mahir melakukannya, fokuslah pada apakah kamu <strong>suka/tertarik</strong> mencoba aktivitas tersebut.</li>
+                </ul>
+            </div>
+            <button onclick="closeInfoModal()" class="w-full py-2.5 rounded-xl font-bold text-sm text-white bg-purple-600 hover:bg-purple-500 transition cursor-pointer">
+                Siap, Mengerti!
+            </button>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         JAVASCRIPT LOGIC: PSYCHOMETRIC ENGINE, CHARTS & EXPORT
+    ========================================================== -->
+    <script>
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+
+        // 1. BANK SOAL TERKALIBRASI (24 BUTIR: 4 SOAL PER DIMENSI RIASEC)
+        // Diurutkan berselang-seling (R-I-A-S-E-C) agar responden tidak mudah menebak pola dimensi
+        const QUESTIONS = [
+            // Putaran 1
+            { id: 1, type: 'R', text: "Merakit komputer custom, mengoprek gadget, atau memperbaiki perangkat elektronik yang rusak." },
+            { id: 2, type: 'I', text: "Menganalisis pola data atau tren statistik untuk menemukan penyebab suatu fenomena." },
+            { id: 3, type: 'A', text: "Mendesain poster estetik, ilustrasi digital, atau mengedit video kreatif untuk media sosial." },
+            { id: 4, type: 'S', text: "Menjadi tempat curhat teman dan membantu mereka mencari solusi atas masalah pribadi atau belajar." },
+            { id: 5, type: 'E', text: "Memimpin kepanitiaan acara sekolah dan meyakinkan sponsor atau pihak lain untuk bekerja sama." },
+            { id: 6, type: 'C', text: "Menyusun jadwal kegiatan, anggaran dana, atau database anggota secara rapi dan terperinci." },
+
+            // Putaran 2
+            { id: 7, type: 'R', text: "Membangun prototipe robot, alat IoT (Internet of Things), atau kerajinan fisik menggunakan peralatan teknis." },
+            { id: 8, type: 'I', text: "Melakukan eksperimen ilmiah di laboratorium atau menguji hipotesis dengan metode riset." },
+            { id: 9, type: 'A', text: "Menulis cerita fiksi, puisi, skrip konten kreatif, atau menciptakan aransemen musik." },
+            { id: 10, type: 'S', text: "Mengajar, melatih, atau menjadi mentor bagi adik kelas dalam memahami materi pelajaran." },
+            { id: 11, type: 'E', text: "Merintis ide bisnis kecil-kecilan (seperti online shop atau jasa digital) dan mempromosikannya." },
+            { id: 12, type: 'C', text: "Mengecek ketelitian dokumen, laporan keuangan, atau memastikan aturan dan prosedur berjalan tertib." },
+
+            // Putaran 3
+            { id: 13, type: 'R', text: "Bekerja di luar ruangan (outdoor) seperti survei alam, konservasi lingkungan, atau proyek konstruksi." },
+            { id: 14, type: 'I', text: "Mempelajari cara kerja kecerdasan buatan (AI), pemrograman logika, atau keamanan siber." },
+            { id: 15, type: 'A', text: "Menata konsep visual (branding), fotografi artistik, atau merancang tampilan antarmuka aplikasi (UI)." },
+            { id: 16, type: 'S', text: "Terlibat dalam kegiatan relawan sosial, kampanye kesehatan mental, atau pengabdian masyarakat." },
+            { id: 17, type: 'E', text: "Bernegosiasi, melakukan pitching ide di depan juri, atau berbicara persuasif di depan umum." },
+            { id: 18, type: 'C', text: "Mengelola file arsip digital, spreadsheet rumus otomatis, atau sistem inventaris barang." },
+
+            // Putaran 4
+            { id: 19, type: 'R', text: "Mengoperasikan mesin, drone, kamera profesional, atau peralatan teknis presisi tinggi." },
+            { id: 20, type: 'I', text: "Membaca artikel sains/teknologi mendalam untuk memecahkan teka-teki logika yang kompleks." },
+            { id: 21, type: 'A', text: "Mengekspresikan ide orisinal yang out-of-the-box tanpa terikat aturan baku yang kaku." },
+            { id: 22, type: 'S', text: "Bekerja dalam tim yang kolaboratif dan memastikan setiap anggota merasa dihargai serta kompak." },
+            { id: 23, type: 'E', text: "Mengambil keputusan strategis dalam organisasi dan berani mengambil risiko terukur demi target." },
+            { id: 24, type: 'C', text: "Merancang alur kerja (SOP) yang sistematis agar tugas kelompok selesai tepat waktu tanpa kesalahan." }
+        ];
+
+        // Skala Likert 5 Poin Ramah Gen-Z
+        const LIKERT_OPTIONS = [
+            { value: 1, emoji: "🙅‍♂️", label: "Sangat Tidak Suka", short: "Skip Banget" },
+            { value: 2, emoji: "😕", label: "Kurang Suka", short: "Kurang Tertarik" },
+            { value: 3, emoji: "😐", label: "Netral / Biasa Saja", short: "B aja" },
+            { value: 4, emoji: "🙂", label: "Suka", short: "Tertarik" },
+            { value: 5, emoji: "🤩", label: "Sangat Suka", short: "Vibe Gue Banget!" }
+        ];
+
+        // 2. KNOWLEDGE BASE PSIKOLOGI KARIR RIASEC (LENGKAP & MENDALAM)
+        const RIASEC_PROFILES = {
+            R: {
+                code: 'R',
+                name: 'Realistic',
+                alias: 'The Doers',
+                color: '#10B981', // Emerald
+                badgeBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
+                strength: "Kamu memiliki kecerdasan kinestetik-praktis yang kuat. Kamu lebih suka belajar lewat praktik langsung (hands-on) daripada sekadar teori panjang, tangguh menghadapi tantangan fisik/teknis, dan handal mengoperasikan teknologi maupun peralatan nyata.",
+                tags: ["Praktis & Taktis", "Problem Solver Teknis", "Fokus Hasil Nyata", "Mandiri"],
+                environment: "Lingkungan kerja dinamis yang memungkinkanmu bergerak aktif, berinteraksi dengan mesin, perangkat keras, teknologi lapangan, atau proyek konstruksi/rekayasa nyata.",
+                envHighlight: "Hindari pekerjaan administratif yang terlalu banyak duduk diam menatap dokumen tanpa aksi fisik.",
+                careers: [
+                    { title: "Robotics & IoT Engineer", tag: "Tech Masa Depan" },
+                    { title: "Drone Pilot & Geospatial Specialist", tag: "Era Digital" },
+                    { title: "Renewable Energy Technician", tag: "Green Career" },
+                    { title: "Arsitek / Teknik Sipil", tag: "Konvensional" },
+                    { title: "Hardware & Network Engineer", tag: "IT Infrastruktur" },
+                    { title: "Ahli Agritech & Konservasi", tag: "Sains Terapan" }
+                ],
+                majors: [
+                    "Teknik Mesin / Teknik Elektro",
+                    "Teknik Robotika & Kecerdasan Buatan",
+                    "Teknik Sipil & Arsitektur",
+                    "Teknologi Rekayasa Otomasi / Mekatronika"
+                ],
+                actions: {
+                    ekskul: "Klub Robotika, Karya Ilmiah Remaja (KIR) bidang rekayasa, Pramuka/Pecinta Alam, atau Tim Multimedia teknis.",
+                    skill: "Dasar elektronika/Arduino, CAD 3D Modeling, perakitan PC/jaringan, atau pengoperasian alat teknis.",
+                    portfolio: "Buat proyek mini alat otomatis sederhana (smart home) atau dokumentasi perbaikan/modifikasi perangkat."
+                }
+            },
+            I: {
+                code: 'I',
+                name: 'Investigative',
+                alias: 'The Thinkers',
+                color: '#06B6D4', // Cyan
+                badgeBg: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300',
+                strength: "Kamu adalah pemikir analitis dengan rasa ingin tahu intelektual tinggi. Kamu senang membedah masalah kompleks menjadi logika yang masuk akal, berbasis data, dan tidak mudah percaya sebelum menemukan bukti empiris.",
+                tags: ["Analitis & Logis", "Riset & Data-Driven", "Kritis", "Inovator Sains"],
+                environment: "Lingkungan yang menghargai kebebasan berpikir, riset mendalam, eksplorasi ide-ide baru, serta diskusi intelektual tanpa tekanan rutinitas administratif yang berulang.",
+                envHighlight: "Kamu bersinar saat diberi teka-teki kompleks untuk dipecahkan secara mandiri maupun dalam tim riset.",
+                careers: [
+                    { title: "AI & Machine Learning Engineer", tag: "Tech Masa Depan" },
+                    { title: "Data Scientist / Data Analyst", tag: "Era Digital" },
+                    { title: "Cybersecurity Analyst", tag: "High Demand" },
+                    { title: "Dokter / Peneliti Biomedis", tag: "Konvensional" },
+                    { title: "Bioinformatics Specialist", tag: "Sains Modern" },
+                    { title: "Quantitative Researcher", tag: "FinTech" }
+                ],
+                majors: [
+                    "Ilmu Komputer / Teknik Informatika",
+                    "Sains Data (Data Science) & Statistika",
+                    "Kedokteran / Farmasi / Bioteknologi",
+                    "Fisika / Matematika / Kimia Murni"
+                ],
+                actions: {
+                    ekskul: "Olimpiade Sains Nasional (OSN), Klub Coding/Pemrograman, atau Kelompok Ilmiah Remaja (KIR).",
+                    skill: "Bahasa pemrograman Python/SQL, analisis data dasar, literasi riset ilmiah, dan berpikir komputasional.",
+                    portfolio: "Ikuti kompetisi analisis data pelajar, buat proyek mini AI sederhana, atau tulis esai riset ilmiah."
+                }
+            },
+            A: {
+                code: 'A',
+                name: 'Artistic',
+                alias: 'The Creators',
+                color: '#EC4899', // Pink
+                badgeBg: 'bg-pink-500/15 border-pink-500/30 text-pink-300',
+                strength: "Kamu memiliki imajinasi kaya, kepekaan estetika tinggi, dan orisinalitas yang menonjol. Kamu mampu menerjemahkan emosi maupun ide abstrak menjadi karya visual, audio, tulisan, atau pengalaman digital yang memikat orang lain.",
+                tags: ["Kreatif & Orisinal", "Estetis", "Ekspresif", "Out-of-the-Box"],
+                environment: "Lingkungan kerja fleksibel, ekspresif, dan non-konvensional yang memberikan ruang bebas untuk bereksperimen secara kreatif tanpa aturan birokrasi yang kaku.",
+                envHighlight: "Kreativitasmu paling produktif saat kamu diberi kebebasan menentukan gaya dan pendekatan karyamu sendiri.",
+                careers: [
+                    { title: "UI/UX & Product Designer", tag: "Tech Kreatif" },
+                    { title: "Creative Director & Brand Strategist", tag: "Ekonomi Kreatif" },
+                    { title: "3D Motion & CGI Artist", tag: "Era Digital" },
+                    { title: "Arsitek Interior / Desainer Komunikasi Visual", tag: "Konvensional" },
+                    { title: "Content Creator & Digital Storyteller", tag: "Media Baru" },
+                    { title: "Game Designer & Concept Artist", tag: "Industri Game" }
+                ],
+                majors: [
+                    "Desain Komunikasi Visual (DKV)",
+                    "Desain Produk / Desain Interior",
+                    "Film, Televisi & Media Digital",
+                    "Sastra / Seni Rupa / Musik"
+                ],
+                actions: {
+                    ekskul: "Majalah Dinding/Jurnalistik Kreatif, Teater, Paduan Suara/Band, atau Tim Desain & Dokumentasi OSIS.",
+                    skill: "Figma (UI/UX), Adobe Creative Suite / Canva Pro, video editing, copywriting, dan visual storytelling.",
+                    portfolio: "Bangun akun portofolio digital (Behance, Dribbble, atau Instagram/TikTok kreatif) berisi karya desain atau konten orisinalmu."
+                }
+            },
+            S: {
+                code: 'S',
+                name: 'Social',
+                alias: 'The Helpers',
+                color: '#F59E0B', // Amber
+                badgeBg: 'bg-amber-500/15 border-amber-500/30 text-amber-300',
+                strength: "Kamu unggul dalam kecerdasan interpersonal dan empati. Kamu peka terhadap perasaan orang lain, komunikatif, sabar membimbing, dan mendapatkan energi positif saat bisa membantu orang lain bertumbuh.",
+                tags: ["Empatik & Hangat", "Komunikator Ulung", "Kolaboratif", "Mentor Alami"],
+                environment: "Lingkungan kerja yang harmonis, suportif, dan berorientasi pada manusia—di mana kamu bisa berinteraksi langsung, berdiskusi, mengajar, atau memberdayakan komunitas.",
+                envHighlight: "Kamu kurang cocok bekerja sendirian di depan mesin/data seharian tanpa interaksi manusia yang bermakna.",
+                careers: [
+                    { title: "Psikolog / Konselor Karir & Mental Health", tag: "Konvensional" },
+                    { title: "People & Culture (HR) Specialist", tag: "Korporasi Modern" },
+                    { title: "EdTech Learning Designer & Educator", tag: "Pendidikan Digital" },
+                    { title: "Community Manager & Social Impact Lead", tag: "Era Digital" },
+                    { title: "Dokter / Tenaga Kesehatan Masyarakat", tag: "Kesehatan" },
+                    { title: "UX Researcher (Human Behavior)", tag: "Tech Humanis" }
+                ],
+                majors: [
+                    "Psikologi",
+                    "Ilmu Komunikasi / Hubungan Masyarakat",
+                    "Pendidikan / Bimbingan & Konseling",
+                    "Kesehatan Masyarakat / Keperawatan / Sosiologi"
+                ],
+                actions: {
+                    ekskul: "Palang Merah Remaja (PMR), Konselor Sebaya (PIK-R), OSIS bidang sosial, atau komunitas relawan.",
+                    skill: "Active listening, public speaking, mediasi konflik, empati lintas budaya, dan fasilitasi diskusi kelompok.",
+                    portfolio: "Inisiasi kegiatan bakti sosial, menjadi tutor sebaya di sekolah, atau aktif di organisasi kepemudaan."
+                }
+            },
+            E: {
+                code: 'E',
+                name: 'Enterprising',
+                alias: 'The Persuaders',
+                color: '#A855F7', // Purple
+                badgeBg: 'bg-purple-500/15 border-purple-500/30 text-purple-300',
+                strength: "Kamu memiliki jiwa kepemimpinan, inisiatif tinggi, dan kemampuan persuasi yang kuat. Kamu berani mengambil keputusan, pandai melihat peluang bisnis, serta mampu menggerakkan tim untuk mencapai target ambisius.",
+                tags: ["Visioner & Persuasif", "Jiwa Pemimpin", "Berani Ambil Risiko", "Orientasi Target"],
+                environment: "Lingkungan yang kompetitif, dinamis, dan berorientasi pada pencapaian bisnis atau kepemimpinan—di mana ide-ide strategismu bisa dieksekusi dengan cepat.",
+                envHighlight: "Kamu berkembang pesat saat diberi peran memimpin proyek, bernegosiasi, atau membangun usaha dari nol.",
+                careers: [
+                    { title: "Tech Startup Founder / Entrepreneur", tag: "Bisnis Digital" },
+                    { title: "Digital Product Manager", tag: "Tech Leadership" },
+                    { title: "Growth Marketing & Brand Manager", tag: "Era Digital" },
+                    { title: "Pengacara / Corporate Lawyer / Diplomat", tag: "Konvensional" },
+                    { title: "Business Development & Venture Analyst", tag: "Strategi Bisnis" },
+                    { title: "Event Director & Public Relations Lead", tag: "Kreatif Bisnis" }
+                ],
+                majors: [
+                    "Manajemen Bisnis / Kewirausahaan",
+                    "Ilmu Hukum / Hubungan Internasional",
+                    "Ilmu Ekonomi / Bisnis Digital",
+                    "Ilmu Komunikasi (Marketing Communication)"
+                ],
+                actions: {
+                    ekskul: "Pengurus Inti OSIS/MPK, Klub Debat, Kewirausahaan Siswa, atau panitia pencari dana (sponsorship) event.",
+                    skill: "Pitching & negosiasi, digital marketing, manajemen proyek, kepemimpinan tim, dan literasi bisnis.",
+                    portfolio: "Ikuti lomba Business Plan/Startup pelajar, kelola proyek event sekolah, atau rintis micro-business online."
+                }
+            },
+            C: {
+                code: 'C',
+                name: 'Conventional',
+                alias: 'The Organizers',
+                color: '#3B82F6', // Blue
+                badgeBg: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
+                strength: "Kamu adalah pribadi yang sangat terstruktur, teliti, dapat diandalkan, dan efisien. Kamu ahli merapikan kekacauan menjadi sistem yang jelas, menjaga akurasi data, dan memastikan setiap rencana berjalan sesuai standar.",
+                tags: ["Terstruktur & Teliti", "Sistematis", "Akurat & Andal", "Manajemen Rapi"],
+                environment: "Lingkungan kerja yang terorganisir dengan baik, memiliki alur kerja jelas, ekspektasi terukur, serta menghargai ketepatan waktu dan akurasi informasi.",
+                envHighlight: "Kamu adalah tulang punggung yang membuat sebuah tim atau perusahaan berjalan stabil tanpa kesalahan fatal.",
+                careers: [
+                    { title: "FinTech & Financial Analyst", tag: "Finansial Modern" },
+                    { title: "Data Governance & Operations Specialist", tag: "Era Digital" },
+                    { title: "Akuntan Publik / Auditor / Aktuaris", tag: "Konvensional" },
+                    { title: "Supply Chain & Logistics Planner", tag: "Industri Global" },
+                    { title: "Quality Assurance (QA) Engineer", tag: "Tech Sistematis" },
+                    { title: "Project Management Officer (PMO)", tag: "Manajemen" }
+                ],
+                majors: [
+                    "Akuntansi / Keuangan & Perbankan",
+                    "Sistem Informasi / Manajemen Informatika",
+                    "Aktuaria / Statistika Terapan",
+                    "Administrasi Bisnis / Teknik Industri"
+                ],
+                actions: {
+                    ekskul: "Bendahara/Sekretaris OSIS atau Ekskul, Koperasi Siswa, atau Tim Administrasi Kompetisi Sekolah.",
+                    skill: "Microsoft Excel / Google Sheets tingkat lanjut, manajemen database, literasi keuangan, dan perencanaan jadwal.",
+                    portfolio: "Buat sistem pencatatan keuangan atau database inventaris digital untuk organisasi/ekskul di sekolahmu."
+                }
+            }
+        };
+
+        // Julukan Persona Keren Berdasarkan Kombinasi 2 Huruf Teratas (30 Kombinasi Lengkap!)
+        const PERSONA_COMBINATIONS = {
+            "RI": { title: "The Tech Architect", tagline: "Perpaduan antara keahlian teknis praktis dan ketajaman analisis ilmiah untuk membangun teknologi masa depan." },
+            "RA": { title: "The Industrial Creator", tagline: "Menggabungkan keterampilan teknis nyata dengan sentuhan estetika desain untuk menciptakan karya fisik maupun digital yang memukau." },
+            "RS": { title: "The Practical Mentor", tagline: "Terampil memecahkan masalah teknis nyata sambil membimbing dan membantu orang lain secara langsung." },
+            "RE": { title: "The Venture Builder", tagline: "Eksekutor tangguh yang mampu mengubah ide bisnis menjadi produk nyata dan proyek berskala besar." },
+            "RC": { title: "The Precision Engineer", tagline: "Mengutamakan akurasi, efisiensi sistem, dan keandalan teknis dalam setiap proyek yang dikerjakan." },
+
+            "IR": { title: "The Applied Scientist", tagline: "Pemikir analitis yang tidak hanya berhenti di teori, tetapi membuktikannya lewat eksperimen dan teknologi nyata." },
+            "IA": { title: "The Creative Visionary", tagline: "Memadukan rasa ingin tahu intelektual dengan imajinasi estetika untuk melahirkan inovasi orisinal." },
+            "IS": { title: "The Humanistic Researcher", tagline: "Menggunakan sains, data, dan empati mendalam untuk memecahkan persoalan manusia dan kesehatan." },
+            "IE": { title: "The Strategic Innovator", tagline: "Menggabungkan riset berbasis data dengan visi kepemimpinan untuk menciptakan terobosan bisnis." },
+            "IC": { title: "The Data Strategist", tagline: "Ahli mengolah informasi kompleks menjadi sistem, algoritma, dan keputusan yang sangat akurat." },
+
+            "AR": { title: "The Craft Designer", tagline: "Seniman praktis yang menghidupkan imajinasi menjadi produk fisik, arsitektur, atau media interaktif." },
+            "AI": { title: "The Digital Alchemist", tagline: "Perpaduan langka antara otak kanan yang artistik dan otak kiri yang analitis—sangat dicari di era AI & UI/UX." },
+            "AS": { title: "The Empathetic Storyteller", tagline: "Menggunakan seni, komunikasi, dan kepekaan sosial untuk menginspirasi serta menggerakkan banyak orang." },
+            "AE": { title: "The Creative Director", tagline: "Pemimpin kreatif yang mampu mengemas ide-ide segar menjadi brand dan kampanye bernilai tinggi." },
+            "AC": { title: "The Structured Designer", tagline: "Kreatif namun tetap terorganisir—mampu merancang sistem desain yang estetis sekaligus rapi." },
+
+            "SR": { title: "The Hands-On Helper", tagline: "Hadir memberikan bantuan nyata dan solusi praktis bagi kesejahteraan orang-orang di sekitarmu." },
+            "SI": { title: "The Insightful Counselor", tagline: "Memadukan empati hangat dengan analisis psikologis mendalam untuk memahami perilaku manusia." },
+            "SA": { title: "The Inspiring Educator", tagline: "Menyampaikan gagasan dan nilai kemanusiaan melalui pendekatan kreatif yang menyentuh hati." },
+            "SE": { title: "The Social Catalyst", tagline: "Pemimpin berjiwa sosial yang mampu menggerakkan komunitas dan membangun kolaborasi berdampak luas." },
+            "SC": { title: "The Community Organizer", tagline: "Menjaga harmoni tim sekaligus memastikan setiap program sosial berjalan tertib dan terukur." },
+
+            "ER": { title: "The Operational Leader", tagline: "Pemimpin yang turun langsung ke lapangan, berani mengambil keputusan cepat, dan berorientasi hasil." },
+            "EI": { title: "The Tech Entrepreneur", tagline: "Memadukan insting bisnis tajam dengan pemahaman teknologi dan data untuk membangun solusi modern." },
+            "EA": { title: "The Brand Visionary", tagline: "Karismatik, persuasif, dan penuh ide kreatif untuk membangun tren serta menginspirasi audiens." },
+            "ES": { title: "The Charismatic Motivator", tagline: "Pemimpin yang mengutamakan pemberdayaan tim, komunikasi persuasif, dan relasi yang kuat." },
+            "EC": { title: "The Executive Strategist", tagline: "Menggabungkan ambisi bisnis dengan perencanaan sistematis dan pengelolaan sumber daya yang presisi." },
+
+            "CR": { title: "The Systems Guardian", tagline: "Menjaga keandalan infrastruktur, alur kerja teknis, dan standar kualitas dengan ketelitian tinggi." },
+            "CI": { title: "The Quantitative Analyst", tagline: "Ahli membedah angka, statistik, dan sistem informasi untuk memastikan akurasi keputusan." },
+            "CA": { title: "The Design Systems Specialist", tagline: "Menyusun keteraturan dan struktur di balik proyek-proyek kreatif maupun digital." },
+            "CS": { title: "The Supportive Coordinator", tagline: "Memastikan kebutuhan tim dan pelayanan publik terpenuhi dengan rapi, ramah, dan tepat waktu." },
+            "CE": { title: "The Operations Architect", tagline: "Tulang punggung manajemen yang mengubah visi besar organisasi menjadi rencana kerja yang terukur." }
+        };
+
+        // STATE APLIKASI
+        let currentQuestionIndex = 0;
+        let answers = new Array(QUESTIONS.length).fill(null);
+        let radarChartInstance = null;
+        let latestResultData = null;
+
+        // =========================================================
+        // NAVIGASI & KONTROL KUIS
+        // =========================================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                info: 'bg-zinc-900 border-purple-500/40 text-zinc-100',
+                success: 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200',
+                warning: 'bg-amber-950/90 border-amber-500/50 text-amber-200'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md text-xs sm:text-sm font-medium flex items-center gap-2.5 animate-slide-up ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i data-lucide="info" class="w-4 h-4 shrink-0 text-purple-400"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function openInfoModal() {
+            const modal = document.getElementById('info-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeInfoModal() {
+            const modal = document.getElementById('info-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function resetToLanding() {
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('landing-section').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            answers = new Array(QUESTIONS.length).fill(null);
+
+            document.getElementById('landing-section').classList.add('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('quiz-section').classList.remove('hidden');
+            
+            renderQuestion();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function restartQuiz() {
+            startQuiz();
+            showToast("Kuis direset. Silakan isi kembali sesuai minatmu!", "info");
+        }
+
+        function renderQuestion() {
+            const q = QUESTIONS[currentQuestionIndex];
+            const total = QUESTIONS.length;
+            const progressPercent = Math.round(((currentQuestionIndex + 1) / total) * 100);
+
+            document.getElementById('question-badge').textContent = `Soal ${currentQuestionIndex + 1} / ${total}`;
+            document.getElementById('progress-percentage').textContent = `${progressPercent}%`;
+            document.getElementById('progress-bar-fill').style.width = `${progressPercent}%`;
+            
+            const qTextEl = document.getElementById('question-text');
+            qTextEl.style.opacity = 0;
+            setTimeout(() => {
+                qTextEl.textContent = `"${q.text}"`;
+                qTextEl.style.transition = 'opacity 0.25s ease';
+                qTextEl.style.opacity = 1;
+            }, 80);
+
+            // Render 5 Pilihan Skala Likert
+            const grid = document.getElementById('likert-options-grid');
+            grid.innerHTML = '';
+
+            LIKERT_OPTIONS.forEach(opt => {
+                const isSelected = answers[currentQuestionIndex] === opt.value;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => selectAnswer(opt.value);
+                btn.className = `likert-btn p-3.5 sm:p-4 rounded-2xl border text-left sm:text-center flex sm:flex-col items-center justify-between sm:justify-center gap-2 cursor-pointer ${
+                    isSelected 
+                    ? 'selected text-white' 
+                    : 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-600 text-zinc-300 hover:bg-zinc-800/80'
+                }`;
+
+                btn.innerHTML = `
+                    <div class="flex sm:flex-col items-center gap-3 sm:gap-2">
+                        <span class="text-2xl sm:text-3xl">${opt.emoji}</span>
+                        <div>
+                            <div class="font-bold text-xs sm:text-sm text-white">${opt.label}</div>
+                            <div class="text-[11px] text-zinc-400 mt-0.5">${opt.short}</div>
+                        </div>
+                    </div>
+                    <span class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center border ${
+                        isSelected ? 'bg-purple-500 border-purple-400 text-white' : 'border-zinc-700 text-zinc-500'
+                    }">${opt.value}</span>
+                `;
+                grid.appendChild(btn);
+            });
+
+            // Atur status tombol Sebelumnya & Selanjutnya
+            document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+            const btnNext = document.getElementById('btn-next');
+            const btnNextLabel = document.getElementById('btn-next-label');
+            
+            btnNext.disabled = answers[currentQuestionIndex] === null;
+            btnNextLabel.textContent = currentQuestionIndex === total - 1 ? 'Lihat Hasil Analisis' : 'Selanjutnya';
+        }
+
+        function selectAnswer(val) {
+            answers[currentQuestionIndex] = val;
+            renderQuestion();
+
+            // Auto-advance halus setelah 280ms
+            setTimeout(() => {
+                if (currentQuestionIndex < QUESTIONS.length - 1) {
+                    currentQuestionIndex++;
+                    renderQuestion();
+                } else {
+                    calculateAndShowResults();
+                }
+            }, 280);
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestionIndex] === null) {
+                showToast("Pilih salah satu respons terlebih dahulu ya!", "warning");
+                return;
+            }
+            if (currentQuestionIndex < QUESTIONS.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                calculateAndShowResults();
+            }
+        }
+
+        // =========================================================
+        // PERHITUNGAN SKOR PSIKOMETRI & RENDER DASHBOARD HASIL
+        // =========================================================
+        function calculateAndShowResults() {
+            // Pastikan semua soal terisi
+            const unansweredIdx = answers.findIndex(a => a === null);
+            if (unansweredIdx !== -1) {
+                currentQuestionIndex = unansweredIdx;
+                renderQuestion();
+                showToast(`Soal nomor ${unansweredIdx + 1} belum dijawab.`, "warning");
+                return;
+            }
+
+            // Hitung skor mentah per dimensi (4 soal x maks 5 poin = 20 maks, min = 4)
+            const rawScores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+            QUESTIONS.forEach((q, idx) => {
+                rawScores[q.type] += answers[idx];
+            });
+
+            // Konversi ke persentase (0 - 100%)
+            // Menggunakan skala persentase proporsional (raw / 20 * 100) agar intuitif bagi pelajar
+            const percentScores = {};
+            Object.keys(rawScores).forEach(key => {
+                percentScores[key] = Math.round((rawScores[key] / 20) * 100);
+            });
+
+            // Urutkan dimensi dari skor tertinggi ke terendah
+            // Tie-breaker menggunakan urutan standar RIASEC jika skor sama persis
+            const sortedDimensions = Object.keys(rawScores)
+                .map(key => ({
+                    code: key,
+                    raw: rawScores[key],
+                    percent: percentScores[key],
+                    profile: RIASEC_PROFILES[key]
+                }))
+                .sort((a, b) => b.raw - a.raw);
+
+            const top1 = sortedDimensions[0];
+            const top2 = sortedDimensions[1];
+            const top3 = sortedDimensions[2];
+
+            const hollandCode = `${top1.code}-${top2.code}-${top3.code}`;
+            const comboKey = `${top1.code}${top2.code}`;
+            const persona = PERSONA_COMBINATIONS[comboKey] || {
+                title: `The ${top1.profile.name} Explorer`,
+                tagline: top1.profile.strength
+            };
+
+            // Ambil identitas pengguna
+            const userNameInput = document.getElementById('input-name').value.trim();
+            const userSchoolInput = document.getElementById('input-school').value.trim();
+            const userName = userNameInput || "Siswa Eksplorer";
+            const userSchool = userSchoolInput || "Pelajar SMA/MA Indonesia";
+
+            const now = new Date();
+            const dateFormatted = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            // Simpan state hasil untuk keperluan PDF & PNG
+            latestResultData = {
+                userName,
+                userSchool,
+                dateFormatted,
+                hollandCode,
+                persona,
+                sortedDimensions,
+                percentScores,
+                top1,
+                top2,
+                top3
+            };
+
+            // Update UI Kartu Persona
+            document.getElementById('res-user-name').textContent = userName;
+            document.getElementById('res-user-school').textContent = userSchool;
+            document.getElementById('res-holland-code').textContent = hollandCode;
+            document.getElementById('res-persona-title').textContent = persona.title;
+            document.getElementById('res-persona-tagline').textContent = persona.tagline;
+            document.getElementById('res-date-stamp').textContent = dateFormatted;
+            document.getElementById('res-code-inline').textContent = hollandCode;
+
+            // Render Top 3 Pills di dalam Kartu Persona
+            const top3Container = document.getElementById('res-top3-pills');
+            top3Container.innerHTML = '';
+            [top1, top2, top3].forEach((item, index) => {
+                const rankLabel = index === 0 ? 'Dominan #1' : index === 1 ? 'Sekunder #2' : 'Tersier #3';
+                top3Container.innerHTML += `
+                    <div class="p-3 rounded-2xl bg-white/5 border border-white/10">
+                        <div class="flex items-center justify-between text-[10px] text-zinc-400 mb-1">
+                            <span>${rankLabel}</span>
+                            <span class="font-bold text-white">${item.percent}%</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-display font-extrabold text-base" style="color: ${item.profile.color}">${item.code}</span>
+                            <span class="font-bold text-xs sm:text-sm text-white truncate">${item.profile.name}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render Mini Score Grid di bawah Radar Chart
+            const allScoresGrid = document.getElementById('res-all-scores-grid');
+            allScoresGrid.innerHTML = '';
+            ['R', 'I', 'A', 'S', 'E', 'C'].forEach(code => {
+                const prof = RIASEC_PROFILES[code];
+                const pct = percentScores[code];
+                allScoresGrid.innerHTML += `
+                    <div class="px-2.5 py-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                        <span class="font-bold" style="color: ${prof.color}">${code} <span class="text-zinc-400 font-normal hidden sm:inline">${prof.name.slice(0,4)}.</span></span>
+                        <span class="font-display font-bold text-white">${pct}%</span>
+                    </div>
+                `;
+            });
+
+            // Render Analisis Psikologis & Lingkungan Kerja (Gabungan Top 1 & Top 2)
+            document.getElementById('res-strength-desc').textContent = `${top1.profile.strength} Ditambah dengan sentuhan ${top2.profile.name} (${top2.profile.alias}), kamu memiliki keunggulan unik dalam memadukan pola pikir ${top1.profile.tags[0].toLowerCase()} dengan pendekatan ${top2.profile.tags[0].toLowerCase()}.`;
+            
+            const strengthTagsEl = document.getElementById('res-strength-tags');
+            strengthTagsEl.innerHTML = '';
+            [...top1.profile.tags.slice(0, 3), ...top2.profile.tags.slice(0, 2)].forEach(tag => {
+                strengthTagsEl.innerHTML += `<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/15 border border-purple-500/30 text-purple-200">${tag}</span>`;
+            });
+
+            document.getElementById('res-environment-desc').textContent = top1.profile.environment;
+            document.getElementById('res-environment-highlight').textContent = top1.profile.envHighlight;
+
+            // Render Ragam Profesi Masa Depan (Gabungan Top 1, Top 2, Top 3)
+            const careersGrid = document.getElementById('res-careers-grid');
+            careersGrid.innerHTML = '';
+            const curatedCareers = [
+                ...top1.profile.careers.slice(0, 3),
+                ...top2.profile.careers.slice(0, 2),
+                ...top3.profile.careers.slice(0, 1)
+            ];
+            curatedCareers.forEach(c => {
+                careersGrid.innerHTML += `
+                    <div class="p-3.5 rounded-2xl bg-zinc-900/90 border border-white/10 hover:border-cyan-500/40 transition flex flex-col justify-between gap-2">
+                        <div class="font-bold text-sm text-white">${c.title}</div>
+                        <div>
+                            <span class="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/20">${c.tag}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render Jurusan Kuliah / Studi Lanjut
+            const majorsList = document.getElementById('res-majors-list');
+            majorsList.innerHTML = '';
+            const curatedMajors = [
+                { name: top1.profile.majors[0], match: `Kecocokan Utama (${top1.code})` },
+                { name: top1.profile.majors[1], match: `Kecocokan Utama (${top1.code})` },
+                { name: top2.profile.majors[0], match: `Kombinasi (${top1.code}-${top2.code})` },
+                { name: top2.profile.majors[1], match: `Kombinasi (${top1.code}-${top2.code})` },
+                { name: top3.profile.majors[0], match: `Alternatif Potensial (${top3.code})` }
+            ];
+            curatedMajors.forEach(m => {
+                majorsList.innerHTML += `
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2">
+                        <span class="text-xs sm:text-sm font-semibold text-zinc-100">${m.name}</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/20 shrink-0">${m.match}</span>
+                    </div>
+                `;
+            });
+
+            // Render Action Plan Pengembangan Diri Pelajar
+            const actionGrid = document.getElementById('res-action-plan-grid');
+            actionGrid.innerHTML = `
+                <div class="p-5 rounded-2xl bg-zinc-900/90 border border-white/10 space-y-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+                        <i data-lucide="users" class="w-5 h-5"></i>
+                    </div>
+                    <h4 class="font-bold text-base text-white">1. Ekstrakurikuler & Organisasi</h4>
+                    <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">${top1.profile.actions.ekskul}</p>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-zinc-900/90 border border-white/10 space-y-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+                        <i data-lucide="cpu" class="w-5 h-5"></i>
+                    </div>
+                    <h4 class="font-bold text-base text-white">2. Skill & Tools Dipelajari</h4>
+                    <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">${top1.profile.actions.skill} Dipadukan dengan: ${top2.profile.actions.skill.toLowerCase()}</p>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-zinc-900/90 border border-white/10 space-y-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="folder-git-2" class="w-5 h-5"></i>
+                    </div>
+                    <h4 class="font-bold text-base text-white">3. Portofolio Awal SMA/MA</h4>
+                    <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">${top1.profile.actions.portfolio}</p>
+                </div>
+            `;
+
+            // Tampilkan Section Hasil
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+            lucide.createIcons();
+
+            // Render Radar Chart
+            renderRadarChart(percentScores);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderRadarChart(percentScores) {
+            const ctx = document.getElementById('riasecRadarChart').getContext('2d');
+            
+            if (radarChartInstance) {
+                radarChartInstance.destroy();
+            }
+
+            const dataValues = [
+                percentScores.R,
+                percentScores.I,
+                percentScores.A,
+                percentScores.S,
+                percentScores.E,
+                percentScores.C
+            ];
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        'R - Realistic',
+                        'I - Investigative',
+                        'A - Artistic',
+                        'S - Social',
+                        'E - Enterprising',
+                        'C - Conventional'
+                    ],
+                    datasets: [{
+                        label: 'Skor Minat (%)',
+                        data: dataValues,
+                        backgroundColor: 'rgba(168, 85, 247, 0.28)',
+                        borderColor: '#EC4899',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#06B6D4',
+                        pointBorderColor: '#FFFFFF',
+                        pointHoverBackgroundColor: '#FFFFFF',
+                        pointHoverBorderColor: '#EC4899',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                display: false
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.12)'
+                            },
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.12)'
+                            },
+                            pointLabels: {
+                                color: '#E4E4E7',
+                                font: {
+                                    family: "'Plus Jakarta Sans', sans-serif",
+                                    size: 11,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(24, 24, 27, 0.95)',
+                            titleColor: '#F4F4F5',
+                            bodyColor: '#38BDF8',
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Tingkat Minat: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =========================================================
+        // EXPORT FITUR 1: DOWNLOAD KARTU PERSONA (PNG)
+        // =========================================================
+        async function downloadPersonaCardPNG() {
+            const btn = document.getElementById('btn-download-png');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Memproses PNG...</span>`;
+            lucide.createIcons();
+
+            try {
+                const cardElement = document.getElementById('share-card-capture');
+                const canvas = await html2canvas(cardElement, {
+                    scale: 2,
+                    backgroundColor: '#0D131F',
+                    useCORS: true,
+                    logging: false
+                });
+
+                const imageURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                const safeName = (latestResultData?.userName || 'Siswa').replace(/[^a-zA-Z0-9]/g, '_');
+                link.download = `VibeCheck_RIASEC_${latestResultData.hollandCode}_${safeName}.png`;
+                link.href = imageURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showToast("Kartu Persona RIASEC (PNG) berhasil diunduh!", "success");
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal membuat gambar kartu. Silakan coba lagi.", "warning");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            }
+        }
+
+        // =========================================================
+        // EXPORT FITUR 2: DOWNLOAD LAPORAN LENGKAP BK (PDF)
+        // =========================================================
+        async function downloadFullReportPDF() {
+            if (!latestResultData) return;
+
+            const btn = document.getElementById('btn-download-pdf');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menyusun PDF...</span>`;
+            lucide.createIcons();
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const margin = 16;
+                const contentWidth = pageWidth - (margin * 2);
+
+                const { userName, userSchool, dateFormatted, hollandCode, persona, sortedDimensions, top1, top2, top3 } = latestResultData;
+
+                // Header Banner PDF
+                doc.setFillColor(18, 18, 28);
+                doc.rect(0, 0, pageWidth, 42, 'F');
+
+                doc.setTextColor(168, 85, 247);
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.text('LAPORAN ASESMEN PSIKOMETRI MINAT & BAKAT KARIR (TEORI HOLLAND RIASEC)', margin, 14);
+
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(18);
+                doc.text(`Kode Holland: ${hollandCode} — ${persona.title}`, margin, 24);
+
+                doc.setTextColor(200, 200, 210);
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Nama: ${userName}   |   Sekolah/Kelas: ${userSchool}   |   Tanggal: ${dateFormatted}`, margin, 33);
+
+                let y = 52;
+
+                // Ringkasan Persona
+                doc.setTextColor(20, 20, 30);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('1. Profil Kepribadian Karir Dominan', margin, y);
+                y += 6;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor(60, 60, 70);
+                const taglineLines = doc.splitTextToSize(persona.tagline, contentWidth);
+                doc.text(taglineLines, margin, y);
+                y += (taglineLines.length * 5) + 6;
+
+                // Tabel Skor 6 Dimensi RIASEC
+                doc.setTextColor(20, 20, 30);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('2. Rincian Skor 6 Dimensi RIASEC', margin, y);
+                y += 6;
+
+                sortedDimensions.forEach((dim, idx) => {
+                    const barWidth = (dim.percent / 100) * 90;
+                    doc.setFontSize(9.5);
+                    doc.setFont('helvetica', idx < 3 ? 'bold' : 'normal');
+                    doc.setTextColor(40, 40, 50);
+                    doc.text(`${dim.code} - ${dim.profile.name} (${dim.profile.alias})`, margin, y + 4);
+
+                    // Background bar
+                    doc.setFillColor(235, 235, 242);
+                    doc.rect(margin + 68, y, 90, 5, 'F');
+
+                    // Fill bar
+                    if (idx === 0) doc.setFillColor(139, 92, 246);
+                    else if (idx === 1) doc.setFillColor(236, 72, 153);
+                    else if (idx === 2) doc.setFillColor(6, 182, 212);
+                    else doc.setFillColor(148, 163, 184);
+                    
+                    doc.rect(margin + 68, y, barWidth, 5, 'F');
+
+                    doc.text(`${dim.percent}%`, margin + 163, y + 4);
+                    y += 8;
+                });
+
+                y += 5;
+
+                // Kekuatan & Lingkungan Kerja
+                doc.setTextColor(20, 20, 30);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('3. Kekuatan Psikologis & Lingkungan Kerja Ideal', margin, y);
+                y += 6;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9.5);
+                doc.setTextColor(55, 55, 65);
+                const strengthText = `Kekuatan Utama: ${top1.profile.strength}\nLingkungan Ideal: ${top1.profile.environment}`;
+                const strengthLines = doc.splitTextToSize(strengthText, contentWidth);
+                doc.text(strengthLines, margin, y);
+                y += (strengthLines.length * 4.8) + 7;
+
+                // Rekomendasi Profesi & Jurusan Kuliah
+                doc.setTextColor(20, 20, 30);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('4. Rekomendasi Karir Masa Depan & Jurusan Kuliah', margin, y);
+                y += 6;
+
+                const careersList = [
+                    ...top1.profile.careers.slice(0, 3).map(c => `${c.title} (${c.tag})`),
+                    ...top2.profile.careers.slice(0, 2).map(c => `${c.title} (${c.tag})`)
+                ].join(', ');
+
+                const majorsList = [
+                    ...top1.profile.majors.slice(0, 2),
+                    ...top2.profile.majors.slice(0, 2),
+                    top3.profile.majors[0]
+                ].join(', ');
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9.5);
+                doc.setTextColor(88, 28, 135);
+                doc.text('Ragam Profesi Relevan:', margin, y);
+                y += 4.5;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(55, 55, 65);
+                const careerLines = doc.splitTextToSize(careersList, contentWidth);
+                doc.text(careerLines, margin, y);
+                y += (careerLines.length * 4.8) + 4;
+
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(14, 116, 144);
+                doc.text('Rekomendasi Jurusan Kuliah / Studi Lanjut:', margin, y);
+                y += 4.5;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(55, 55, 65);
+                const majorLines = doc.splitTextToSize(majorsList, contentWidth);
+                doc.text(majorLines, margin, y);
+                y += (majorLines.length * 4.8) + 7;
+
+                // Action Plan Siswa
+                doc.setTextColor(20, 20, 30);
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text('5. Action Plan Pengembangan Diri Pelajar SMA/MA', margin, y);
+                y += 6;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9.5);
+                doc.setTextColor(55, 55, 65);
+                const actionText = [
+                    `• Ekstrakurikuler & Organisasi: ${top1.profile.actions.ekskul}`,
+                    `• Skill & Tools: ${top1.profile.actions.skill}`,
+                    `• Portofolio Awal: ${top1.profile.actions.portfolio}`
+                ].join('\n');
+                const actionLines = doc.splitTextToSize(actionText, contentWidth);
+                doc.text(actionLines, margin, y);
+
+                // Footer PDF
+                doc.setDrawColor(220, 220, 225);
+                doc.line(margin, 280, pageWidth - margin, 280);
+                doc.setFontSize(8);
+                doc.setTextColor(130, 130, 140);
+                doc.text('Dokumen ini dihasilkan oleh VibeCheck.Karir (Adaptasi Teori Pilihan Karir John L. Holland) sebagai bahan refleksi & konsultasi BK.', margin, 285);
+
+                const safeName = userName.replace(/[^a-zA-Z0-9]/g, '_');
+                doc.save(`Laporan_BK_RIASEC_${hollandCode}_${safeName}.pdf`);
+
+                showToast("Laporan Lengkap Konseling (PDF) berhasil diunduh!", "success");
+            } catch (err) {
+                console.error(err);
+                showToast("Terjadi kendala saat menyusun PDF.", "warning");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>
